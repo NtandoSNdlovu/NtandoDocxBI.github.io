@@ -27,10 +27,10 @@
     <!-- Navigation -->
     <nav id="nav">
         <ul class="links">
-            <li class="active"><a href="index.html">Home</a></li>
+            <li><a href="index.html">Home</a></li>
             <li><a href="other-paid-work.html">Professional Work</a></li>
             <li><a href="about.html">About Me</a></li>
-            <li><a href="site-analytics.html">Site Stats</a></li>
+            <li class="active"><a href="site-analytics.html">Site Stats</a></li>
             <li><a href="contact.html">Contact</a></li>
         </ul>
 
@@ -54,25 +54,21 @@
             <header class="major">
                 <h1>Site Analytics</h1>
                 <p>
-                    A personal analytics project exploring how people move through a website
-                    and what their behaviour quietly reveals.
+                    A live analytics experiment exploring how visitors move through
+                    this site and what that behaviour quietly reveals.
                 </p>
             </header>
 
             <p>
-                At face value, this is a simple dashboard. Underneath, it’s a live data pipeline
-                capturing real interactions in real time. The goal isn’t traffic, it’s intent.
-            </p>
-
-            <p>
-                Much like observing movement in a physical space, how visitors navigate,
-                pause, and leave often tells you more than what they say.
+                This dashboard runs on real interaction data captured in real time.
+                The focus isn’t traffic volume, it’s understanding intent,
+                engagement, and flow.
             </p>
 
             <hr />
 
-            <!-- KPI snapshot -->
-            <h2>Live metrics snapshot</h2>
+            <!-- Core KPIs (ONLY what is supported) -->
+            <h2>Live metrics</h2>
 
             <div class="stats">
 
@@ -95,72 +91,20 @@
                 </div>
 
                 <div class="stat">
-                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                    <strong class="stat-value" id="kpi-avgtime">—</strong>
-                    <span>Avg. Time on Page</span>
-                </div>
-
-            </div>
-
-            <hr />
-
-            <!-- Visitor intent -->
-            <h2>What visitors care about</h2>
-
-            <p>
-                Rather than guessing what matters most, this section shows how attention
-                is distributed across the site, highlighting whether visitors engage
-                more with the work or the person behind it.
-            </p>
-
-            <div class="stats">
-
-                <div class="stat">
                     <div class="stat-icon"><i class="fas fa-eye"></i></div>
                     <strong class="stat-value" id="kpi-top-page">—</strong>
                     <span>Most Viewed Page</span>
                 </div>
 
-                <div class="stat">
-                    <div class="stat-icon"><i class="fas fa-user-circle"></i></div>
-                    <strong class="stat-value" id="kpi-about-early">—</strong>
-                    <span>Early “About” Visits</span>
-                </div>
-
-                <div class="stat">
-                    <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
-                    <strong class="stat-value" id="kpi-work-first">—</strong>
-                    <span>Work Viewed First</span>
-                </div>
-
-                <div class="stat">
-                    <div class="stat-icon"><i class="fas fa-sign-out-alt"></i></div>
-                    <strong class="stat-value" id="kpi-exit-page">—</strong>
-                    <span>Top Exit Page</span>
-                </div>
-
             </div>
 
             <hr />
 
-            <!-- Charts -->
-            <h2>Behaviour over time</h2>
-
-            <div class="box">
-                <canvas id="dailyVisitsChart"></canvas>
-            </div>
-
-            <div class="box">
-                <canvas id="pageClicksChart"></canvas>
-            </div>
-
-            <hr />
-
-            <!-- Close -->
+            <!-- Closing -->
             <p>
-                This project strengthens how I think about data pipelines, streaming analysis,
-                and executive-facing interpretation, turning behaviour into insight,
-                not just numbers.
+                This project strengthens how I think about data pipelines,
+                behavioural signals, and executive-facing interpretation,
+                turning raw interaction into insight.
             </p>
 
             <ul class="actions">
