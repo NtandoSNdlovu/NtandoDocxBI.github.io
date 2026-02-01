@@ -1,0 +1,248 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>SQL Data Exploration | Ntando Ndlovu</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+    <!-- Core styles -->
+    <link rel="stylesheet" href="assets/css/main.css" />
+
+    <!-- Code highlighting (SQL) -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <noscript>
+        <link rel="stylesheet" href="assets/css/noscript.css" />
+    </noscript>
+</head>
+
+<body class="is-preload">
+
+<div id="wrapper" class="fade-in">
+
+    <!-- Header -->
+    <header id="header">
+        <a href="index.html" class="logo">Ntando Ndlovu</a>
+    </header>
+
+    <!-- Navigation -->
+    <nav id="nav">
+        <ul class="links">
+            <li class="active"><a href="index.html">Home</a></li>
+            <li><a href="other-paid-work.html">Professional Work</a></li>
+            <li><a href="about.html">About Me</a></li>
+            <li><a href="site-analytics.html">Site Stats</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+
+        <ul class="icons">
+            <li>
+                <a href="https://linkedin.com/in/ntando-ndlovu"
+                   class="icon brands fa-linkedin"
+                   target="_blank" rel="noopener">
+                    <span class="label">LinkedIn</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main -->
+    <div id="main">
+
+        <section class="post">
+
+            <!-- Page intro -->
+            <header class="major">
+                <h1>
+                    SQL Data Exploration<br />
+                    & Analysis
+                </h1>
+
+                <p>
+                    The dataset used in this analysis focuses on global COVID-19
+                    statistics. The objective was not prediction, but structured
+                    exploration, understanding scale, change over time, and
+                    relationships between cases, deaths, and populations.
+                </p>
+            </header>
+
+            <hr />
+
+            <!-- Objective -->
+            <h2>What was the objective?</h2>
+
+            <p>
+                The aim was to transform raw, unstructured data into a format
+                that decision-makers could reason about confidently.
+            </p>
+
+            <ul>
+                <li>Understand trends over time</li>
+                <li>Compare impact relative to population size</li>
+                <li>Identify differences in mortality rates</li>
+            </ul>
+
+            <hr />
+
+            <!-- Data preparation -->
+            <h2>How was the data prepared?</h2>
+
+            <p>
+                Before analysis, the data was structured into relational tables
+                and validated for consistency.
+            </p>
+
+            <ul>
+                <li>Separating deaths and vaccination data</li>
+                <li>Correct typing of numeric fields</li>
+                <li>Handling null values to avoid distortion</li>
+            </ul>
+
+            <hr />
+
+            <!-- SQL analysis -->
+            <h2>SQL exploration & analysis</h2>
+
+            <p>
+                Below is a representative extract of SQL used in this project.
+                Each query builds on the previous one, from simple inspection
+                to comparative analysis.
+            </p>
+
+            <pre><code class="language-sql">
+-- covid-19 data exploration
+-- skills used: joins, ctes, temp tables, window functions,
+-- aggregate functions, views, data type conversion
+---------------------------------------------------------------------
+
+-- 1a. death percentage - world
+select 
+    sum(new_cases) as total_cases,
+    sum(cast(new_deaths as int)) as total_deaths,
+    sum(cast(new_deaths as int)) / sum(new_cases) * 100 as deathpercentage
+from covid19portfolioproject.dbo.coviddeaths
+where continent is not null;
+
+-- 2a. total death count per continent
+select 
+    location,
+    sum(cast(new_deaths as int)) as totaldeathcount
+from covid19portfolioproject.dbo.coviddeaths
+where continent is null
+and location not in ('world', 'european union', 'international')
+group by location
+order by totaldeathcount desc;
+
+-- 3a. highest infection rate per country
+select 
+    location,
+    population,
+    max(total_cases) as highestinfectioncount,
+    max((total_cases / population)) * 100 as percentofpopulationinfected
+from covid19portfolioproject.dbo.coviddeaths
+where location not in ('world', 'european union', 'international')
+group by location, population
+order by percentofpopulationinfected desc;
+
+---------------------------------------------------------------------
+-- additional analysis (depth & flexibility)
+---------------------------------------------------------------------
+
+-- rolling vaccinations
+select 
+    dea.continent,
+    dea.location,
+    dea.date,
+    dea.population,
+    vac.new_vaccinations,
+    sum(cast(vac.new_vaccinations as int))
+        over (partition by dea.location order by dea.date)
+        as rollingtotalvaccinations
+from covid19portfolioproject.dbo.coviddeaths dea
+join covid19portfolioproject.dbo.covidvaccinations vac
+    on dea.location = vac.location
+   and dea.date = vac.date
+where dea.continent is not null;
+
+---------------------------------------------------------------------
+-- views (for reporting & dashboards)
+---------------------------------------------------------------------
+
+create view globalnumbers as
+select 
+    date,
+    sum(new_cases) as total_cases,
+    sum(cast(new_deaths as int)) as total_deaths,
+    sum(cast(new_deaths as int)) / sum(new_cases) * 100 as deathpercentage
+from covid19portfolioproject.dbo.coviddeaths
+where continent is not null
+group by date;
+            </code></pre>
+
+            <hr />
+
+            <!-- Rationale -->
+            <h2>Why this approach works</h2>
+
+            <p>
+                SQL was used first to fully understand the data before any
+                visualisation was attempted. This ensures accuracy and
+                transparency in downstream reporting.
+            </p>
+
+            <ul>
+                <li>Clear, auditable logic</li>
+                <li>Reproducible queries</li>
+                <li>Reliable foundation for dashboards</li>
+            </ul>
+
+            <hr />
+
+            <!-- Navigation -->
+            <ul class="actions special">
+                <li>
+                    <a href="index.html" class="button">Back to Portfolio</a>
+                </li>
+            </ul>
+
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <section>
+            <p>© Ntando Ndlovu — Data & BI Analyst</p>
+        </section>
+    </footer>
+
+</div>
+
+<!-- Floating About Me -->
+<a href="about.html" class="about-float" aria-label="Learn more about me">
+    <div class="about-avatar">
+        <img src="images/Ntando.jpeg" alt="Ntando Ndlovu" />
+    </div>
+    <div class="about-text">About me</div>
+</a>
+
+<!-- Scripts (order matters) -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.scrollex.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+<!-- Prism (SQL highlighting) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+
+<!-- Analytics -->
+<script type="module" src="assets/js/analytics.js"></script>
+
+</body>
+</html>
