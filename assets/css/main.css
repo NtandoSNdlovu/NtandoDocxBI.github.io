@@ -5545,6 +5545,28 @@ code {
     width: 100%;
     height: 100%;
 }
+/* ===============================
+   Analytics KPI Fix
+================================ */
+
+.about-dark .stat {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.about-dark .stat-value {
+    color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.about-dark .stat span {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.about-dark .stat-icon {
+    color: #18bfef;
+}
 
 
 
