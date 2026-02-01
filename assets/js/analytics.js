@@ -1,17 +1,17 @@
 // analytics.js
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// ============================
+// =====================================================
 // SUPABASE CONFIG
-// ============================
+// =====================================================
 const SUPABASE_URL = 'https://wnrqfrwsnjjqpgkcship.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_X966BS58oHpJXAZp4a6EPw_M2qIFXY4'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// ============================
-// SESSION + VISITOR
-// ============================
+// =====================================================
+// SESSION & VISITOR HELPERS
+// =====================================================
 function getSessionId() {
     let id = sessionStorage.getItem('session_id')
     if (!id) {
@@ -30,9 +30,9 @@ function getVisitorId() {
     return id
 }
 
-// ============================
-// PAGE VIEW
-// ============================
+// =====================================================
+// PAGE VIEW TRACKING
+// =====================================================
 async function trackPageView() {
     const { error } = await supabase
         .from('events')
@@ -48,19 +48,20 @@ async function trackPageView() {
 
 window.addEventListener('load', trackPageView)
 
-// ============================
+// =====================================================
 // CLICK TRACKING
-// ============================
+// =====================================================
 document.addEventListener('click', async (e) => {
     const target = e.target.closest('a, button')
     if (!target) return
 
     const label =
         target.innerText?.trim() ||
+        target.getAttribute('aria-label') ||
         target.getAttribute('href') ||
         'unknown'
 
-    await supabase
+    const { error } = await supabase
         .from('events')
         .insert([{
             visitor_id: getVisitorId(),
@@ -69,11 +70,13 @@ document.addEventListener('click', async (e) => {
             page: window.location.pathname,
             element: label
         }])
+
+    if (error) console.error('Click error:', error)
 })
 
-// ============================
+// =====================================================
 // FETCH EVENTS
-// ============================
+// =====================================================
 async function fetchEvents() {
     const { data, error } = await supabase
         .from('events')
@@ -86,9 +89,9 @@ async function fetchEvents() {
     return data
 }
 
-// ============================
+// =====================================================
 // PROCESS METRICS
-// ============================
+// =====================================================
 function processMetrics(events) {
     const visitors = new Set()
     const sessions = new Set()
@@ -115,30 +118,38 @@ function processMetrics(events) {
     }
 }
 
-// ============================
-// INIT (ALL PAGES)
-// ============================
+// =====================================================
+// INIT ANALYTICS (DOM SAFE)
+// =====================================================
 async function initAnalytics() {
     const events = await fetchEvents()
     if (!events.length) return
 
     const metrics = processMetrics(events)
 
-    // ----- Site Analytics page KPIs -----
-    if (document.getElementById('kpi-events')) {
-        document.getElementById('kpi-events').innerText = metrics.totalEvents
-        document.getElementById('kpi-visitors').innerText = metrics.uniqueVisitors
-        document.getElementById('kpi-sessions').innerText = metrics.sessions
-        document.getElementById('kpi-top-page').innerText =
+    // -------- Site Analytics KPIs --------
+    const kpiEvents = document.getElementById('kpi-events')
+    const kpiVisitors = document.getElementById('kpi-visitors')
+    const kpiSessions = document.getElementById('kpi-sessions')
+    const kpiTopPage = document.getElementById('kpi-top-page')
+
+    if (kpiEvents) kpiEvents.innerText = metrics.totalEvents
+    if (kpiVisitors) kpiVisitors.innerText = metrics.uniqueVisitors
+    if (kpiSessions) kpiSessions.innerText = metrics.sessions
+    if (kpiTopPage) {
+        kpiTopPage.innerText =
             metrics.topPage.replace('/', '') || 'home'
     }
 
-    // ----- Homepage mini KPIs -----
-    if (document.getElementById('mini-events')) {
-        document.getElementById('mini-events').innerText = metrics.totalEvents
-        document.getElementById('mini-visitors').innerText = metrics.uniqueVisitors
-        document.getElementById('mini-time').innerText = '—'
-    }
+    // -------- Homepage Mini KPIs --------
+    const miniEvents = document.getElementById('mini-events')
+    const miniVisitors = document.getElementById('mini-visitors')
+    const miniTime = document.getElementById('mini-time')
+
+    if (miniEvents) miniEvents.innerText = metrics.totalEvents
+    if (miniVisitors) miniVisitors.innerText = metrics.uniqueVisitors
+    if (miniTime) miniTime.innerText = '—'
 }
 
-initAnalytics()
+// IMPORTANT: wait for DOM on GitHub Pages
+document.addEventListener('DOMContentLoaded', initAnalytics)
