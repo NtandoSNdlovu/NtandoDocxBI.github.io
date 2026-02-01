@@ -37,7 +37,6 @@ async function trackPageView() {
     const page = window.location.pathname
     const referrer = document.referrer || null
 
-    sessionStorage.setItem('last_page', page)
     sessionStorage.setItem('page_enter_time', Date.now())
 
     const { error } = await supabase.from('events').insert([{
@@ -117,12 +116,7 @@ async function fetchEvents() {
 function processMetrics(events) {
     const uniqueVisitors = new Set()
     const sessions = new Set()
-    const dailyCounts = {}
     const pageViews = {}
-    const clickCounts = {}
-    const firstPageBySession = {}
-    const lastPageBySession = {}
-
     let totalTime = 0
     let timeEvents = 0
 
@@ -130,20 +124,8 @@ function processMetrics(events) {
         if (e.visitor_key) uniqueVisitors.add(e.visitor_key)
         if (e.session_id) sessions.add(e.session_id)
 
-        const day = e.created_at.split('T')[0]
-        dailyCounts[day] = (dailyCounts[day] || 0) + 1
-
         if (e.event_type === 'page_view') {
             pageViews[e.page] = (pageViews[e.page] || 0) + 1
-
-            if (!firstPageBySession[e.session_id]) {
-                firstPageBySession[e.session_id] = e.page
-            }
-            lastPageBySession[e.session_id] = e.page
-        }
-
-        if (e.event_type === 'click') {
-            clickCounts[e.label] = (clickCounts[e.label] || 0) + 1
         }
 
         if (e.event_type === 'time_on_page') {
@@ -152,45 +134,20 @@ function processMetrics(events) {
         }
     })
 
-    // Most viewed page
-    const topPage = Object.entries(pageViews)
-        .sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
-
-    // Early behaviour analysis
-    let aboutEarly = 0
-    let workFirst = 0
-
-    Object.values(firstPageBySession).forEach(page => {
-        if (page.includes('about')) aboutEarly++
-        if (page.includes('project') || page.includes('work')) workFirst++
-    })
-
-    // Exit analysis
-    const exitCounts = {}
-    Object.values(lastPageBySession).forEach(page => {
-        exitCounts[page] = (exitCounts[page] || 0) + 1
-    })
-
-    const topExitPage = Object.entries(exitCounts)
-        .sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
+    const topPage =
+        Object.entries(pageViews).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
 
     return {
         totalEvents: events.length,
         uniqueVisitors: uniqueVisitors.size,
         sessions: sessions.size,
         avgTimeOnPage: timeEvents ? Math.round(totalTime / timeEvents) : 0,
-        dailyCounts,
-        pageViews,
-        clickCounts,
-        topPage,
-        aboutEarly,
-        workFirst,
-        topExitPage
+        topPage
     }
 }
 
 // =====================================================
-// INIT ANALYTICS DASHBOARD
+// INIT ANALYTICS (DASHBOARD + MINI KPIs)
 // =====================================================
 async function initAnalytics() {
     const events = await fetchEvents()
@@ -198,7 +155,7 @@ async function initAnalytics() {
 
     const metrics = processMetrics(events)
 
-    // KPI tiles
+    // ---------- MAIN KPI TILES ----------
     const stats = document.querySelectorAll('.stat-value')
     if (stats.length >= 4) {
         stats[0].innerText = metrics.totalEvents
@@ -207,33 +164,14 @@ async function initAnalytics() {
         stats[3].innerText = `${metrics.avgTimeOnPage}s`
     }
 
-    // Behaviour KPIs
-    if (document.getElementById('kpi-top-page')) {
-        document.getElementById('kpi-top-page').innerText = metrics.topPage
-    }
-    if (document.getElementById('kpi-about-early')) {
-        document.getElementById('kpi-about-early').innerText = metrics.aboutEarly
-    }
-    if (document.getElementById('kpi-work-first')) {
-        document.getElementById('kpi-work-first').innerText = metrics.workFirst
-    }
-    if (document.getElementById('kpi-exit-page')) {
-        document.getElementById('kpi-exit-page').innerText = metrics.topExitPage
-    }
+    // ---------- MINI KPI PREVIEW (INDEX) ----------
+    const miniEvents = document.getElementById('mini-events')
+    const miniVisitors = document.getElementById('mini-visitors')
+    const miniTime = document.getElementById('mini-time')
 
-    // Expose for charts
-    window.analyticsData = metrics
+    if (miniEvents) miniEvents.innerText = metrics.totalEvents
+    if (miniVisitors) miniVisitors.innerText = metrics.uniqueVisitors
+    if (miniTime) miniTime.innerText = `${metrics.avgTimeOnPage}s`
 }
 
 initAnalytics()
-    // ===============================
-    // MINI KPI PREVIEW (INDEX PAGE)
-    // ===============================
-    const miniEvents = document.getElementById('mini-events');
-    const miniVisitors = document.getElementById('mini-visitors');
-    const miniTime = document.getElementById('mini-time');
-
-    if (miniEvents) miniEvents.innerText = metrics.totalEvents;
-    if (miniVisitors) miniVisitors.innerText = metrics.uniqueVisitors;
-    if (miniTime) miniTime.innerText = `${metrics.avgTimeOnPage}s`;
-
